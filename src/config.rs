@@ -13,7 +13,7 @@ impl Config {
             port: env::var("MYWORDS_PORT")
                 .ok()
                 .and_then(|p| p.parse().ok())
-                .unwrap_or(3000),
+                .unwrap_or(8000),
             db_path: env::var("MYWORDS_DB_PATH").unwrap_or_else(|_| "./words.db".into()),
         }
     }
