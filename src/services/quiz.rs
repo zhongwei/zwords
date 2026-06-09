@@ -24,6 +24,7 @@ pub fn generate_quiz(conn: &Connection, req: &GenerateQuizRequest) -> Result<Qui
         where_sql, param_values.len() + 1
     );
 
+    #[allow(dead_code)]
     struct RawWord { id: i64, word: String, meaning_cn: Option<String>, meaning_en: Option<String> }
 
     let mut param_refs: Vec<&dyn rusqlite::types::ToSql> = param_values.iter().map(|p| p.as_ref()).collect();

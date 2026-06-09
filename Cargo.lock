@@ -356,6 +356,7 @@ name = "mywords"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "lazy_static",
  "rusqlite",
  "serde",
  "serde_json",
