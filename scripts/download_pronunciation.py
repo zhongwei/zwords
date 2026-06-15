@@ -58,6 +58,22 @@ def sanitize(word: str) -> str:
     return s or "_"
 
 
+def classify(url: str) -> str | None:
+    """Classify a pronunciation URL as 'uk', 'us', or None (discard).
+
+    Strict matching: only URLs containing an explicit region marker are accepted.
+    UK markers: 'uk_pron', '/en/uk/', 'uk_'
+    US markers: 'us_pron', '/en/us/', '/1.0/us/', 'us_'
+    UK is checked first; if both match (unlikely), UK wins.
+    """
+    low = url.lower()
+    if "uk_pron" in low or "/en/uk/" in low or "uk_" in low:
+        return "uk"
+    if "us_pron" in low or "/en/us/" in low or "/1.0/us/" in low or "us_" in low:
+        return "us"
+    return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
