@@ -73,7 +73,7 @@ export default function WordDetail() {
         )}
       </div>
 
-      <div className="max-w-lg">
+      <div className="mx-auto max-w-2xl">
         <ParallaxCard>
           <div className="wd-card-bg">
             <div className="wd-glow wd-glow-1" />
