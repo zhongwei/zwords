@@ -139,6 +139,18 @@ def download_url(url: str) -> bytes | None:
     return None
 
 
+def download_first_success(urls: list[str]) -> bytes | None:
+    """Try each URL in order; return the first successfully downloaded MP3 bytes.
+
+    Returns None if all URLs fail.
+    """
+    for url in urls:
+        data = download_url(url)
+        if data is not None:
+            return data
+    return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
