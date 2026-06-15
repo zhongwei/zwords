@@ -1,4 +1,11 @@
-import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+
+const COARSE_POINTER =
+  typeof window !== "undefined" &&
+  window.matchMedia("(pointer: coarse)").matches;
+const REDUCED_MOTION =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 interface ParallaxCardProps {
   children: ReactNode;
@@ -17,12 +24,14 @@ export default function ParallaxCard({
     "rotateY(0deg) rotateX(0deg)"
   );
 
-  const coarse =
-    typeof window !== "undefined" &&
-    window.matchMedia("(pointer: coarse)").matches;
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const handleMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (coarse) return;
+    if (COARSE_POINTER || REDUCED_MOTION) return;
     const card = cardRef.current;
     if (!card) return;
     const rect = card.getBoundingClientRect();

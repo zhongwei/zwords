@@ -17,11 +17,11 @@ export default function WordField({
   children,
 }: WordFieldProps) {
   const c = FIELD_THEMES[theme];
-  const fieldStyle: CSSProperties = {
+  const fieldStyle = {
     transform: `translateZ(${z}px)`,
     animationDelay: `${index * 0.05}s`,
-    ["--gc" as keyof CSSProperties]: c.glow,
-  };
+    "--gc": c.glow,
+  } as CSSProperties;
   const pillStyle: CSSProperties = {
     color: c.text,
     background: c.bg,
