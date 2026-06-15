@@ -154,5 +154,31 @@ class TestParsePronounceJson(unittest.TestCase):
         self.assertEqual(result, {"x": ["https://example.com/a.mp3"]})
 
 
+class TestIsMp3(unittest.TestCase):
+    def test_mpeg_frame_sync_fffb(self):
+        self.assertTrue(dp.is_mp3(b"\xff\xfb\x90\x00" + b"\x00" * 100))
+
+    def test_mpeg_frame_sync_fff3(self):
+        self.assertTrue(dp.is_mp3(b"\xff\xf3" + b"\x00" * 100))
+
+    def test_id3_tag(self):
+        self.assertTrue(dp.is_mp3(b"ID3\x03\x00\x00\x00" + b"\x00" * 100))
+
+    def test_html_not_mp3(self):
+        self.assertFalse(dp.is_mp3(b"<html><body>404</body></html>"))
+
+    def test_json_error_not_mp3(self):
+        self.assertFalse(dp.is_mp3(b'{"error": "not found"}'))
+
+    def test_empty(self):
+        self.assertFalse(dp.is_mp3(b""))
+
+    def test_too_short(self):
+        self.assertFalse(dp.is_mp3(b"\xff"))
+
+    def test_png_signature_not_mp3(self):
+        self.assertFalse(dp.is_mp3(b"\x89PNG\r\n\x1a\n" + b"\x00" * 100))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

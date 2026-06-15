@@ -101,6 +101,13 @@ def parse_pronounce_json(path: str | Path) -> dict[str, list[str]]:
     return result
 
 
+def is_mp3(data: bytes) -> bool:
+    """Return True iff data starts with a valid MP3 magic-byte prefix."""
+    if len(data) < 2:
+        return False
+    return data.startswith(MP3_MAGIC)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
