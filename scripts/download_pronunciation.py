@@ -48,6 +48,16 @@ HEADERS = {"User-Agent": USER_AGENT}
 MP3_MAGIC = (b"\xff\xfb", b"\xff\xf3", b"\xff\xfa", b"\xff\xf2", b"\xff\xf4", b"ID3")
 
 
+def sanitize(word: str) -> str:
+    """Make a word safe to use as a filename.
+
+    Any char not in [a-zA-Z0-9-] becomes '_'; leading/trailing '_' and '.' are stripped.
+    If the result is empty, returns '_' (never empty, so always a valid filename).
+    """
+    s = re.sub(r"[^a-zA-Z0-9-]", "_", word).strip("_.")
+    return s or "_"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
