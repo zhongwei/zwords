@@ -135,6 +135,15 @@
   font-size: 16px;
   margin-top: 10px;
 }
+.wd-meaning {
+  margin-top: 16px;
+}
+.wd-meaning-cn {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #f1f1f3;
+}
 .wd-rainbow {
   height: 1px;
   margin: 26px 0;

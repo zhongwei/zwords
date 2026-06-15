@@ -90,14 +90,14 @@ export default function WordDetail() {
               </div>
             )}
 
-            <hr className="wd-rainbow" style={z(20)} />
-
             {(word.meaning_cn || word.meaning_en) && (
-              <WordField label={t.wordDetail.meaning} theme="amber" z={30} index={nextIndex()}>
-                {word.meaning_cn && <div>{word.meaning_cn}</div>}
+              <div className="wd-meaning" style={z(45)}>
+                {word.meaning_cn && <div className="wd-meaning-cn">{word.meaning_cn}</div>}
                 {word.meaning_en && <div className="wd-val-muted">{word.meaning_en}</div>}
-              </WordField>
+              </div>
             )}
+
+            <hr className="wd-rainbow" style={z(20)} />
 
             {rootText && (
               <WordField label={t.wordDetail.root} theme="emerald" z={25} index={nextIndex()}>
