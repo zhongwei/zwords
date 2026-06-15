@@ -151,6 +151,62 @@ def download_first_success(urls: list[str]) -> bytes | None:
     return None
 
 
+def process_word(
+    word: str,
+    pronounce_urls: list[str],
+) -> dict[str, str]:
+    """Process a single word: classify URLs, download UK+US if not already on disk.
+
+    Returns a dict with keys 'uk' and 'us', each one of:
+      'ok'         — file written this run
+      'exists'     — file already existed, skipped
+      'no_url'     — no classified URL for this region
+      'failed'     — had URLs but all downloads failed validation
+    """
+    fname = sanitize(word) + ".mp3"
+    uk_path = UK_DIR / fname
+    us_path = US_DIR / fname
+
+    uk_urls: list[str] = []
+    us_urls: list[str] = []
+    for url in pronounce_urls:
+        region = classify(url)
+        if region == "uk":
+            uk_urls.append(url)
+        elif region == "us":
+            us_urls.append(url)
+
+    result: dict[str, str] = {}
+
+    # UK
+    if uk_path.exists():
+        result["uk"] = "exists"
+    elif not uk_urls:
+        result["uk"] = "no_url"
+    else:
+        data = download_first_success(uk_urls)
+        if data is None:
+            result["uk"] = "failed"
+        else:
+            uk_path.write_bytes(data)
+            result["uk"] = "ok"
+
+    # US
+    if us_path.exists():
+        result["us"] = "exists"
+    elif not us_urls:
+        result["us"] = "no_url"
+    else:
+        data = download_first_success(us_urls)
+        if data is None:
+            result["us"] = "failed"
+        else:
+            us_path.write_bytes(data)
+            result["us"] = "ok"
+
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
