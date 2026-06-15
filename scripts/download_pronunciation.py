@@ -132,7 +132,7 @@ def download_url(url: str) -> bytes | None:
                 if not is_mp3(data):
                     return None
                 return data
-        except (requests.ConnectionError, requests.Timeout, requests.ChunkedEncodingError) as e:
+        except (requests.ConnectionError, requests.Timeout, requests.exceptions.ChunkedEncodingError) as e:
             last_exc = e
         if attempt < MAX_RETRIES - 1:
             time.sleep(BACKOFF_BASE * (2 ** attempt))
