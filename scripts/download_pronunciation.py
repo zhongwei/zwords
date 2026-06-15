@@ -108,6 +108,37 @@ def is_mp3(data: bytes) -> bool:
     return data.startswith(MP3_MAGIC)
 
 
+def download_url(url: str) -> bytes | None:
+    """Download a URL and return validated MP3 bytes, or None on failure.
+
+    Tries up to MAX_RETRIES times with exponential backoff. Returns None if:
+    - HTTP status is not 200 after retries
+    - Body fails MP3 magic-byte check (no retry — bad content rarely recovers)
+    - Body exceeds MAX_BYTES
+    - requests raises ConnectionError/Timeout after all retries
+    """
+    last_exc: Exception | None = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=HTTP_TIMEOUT, stream=True)
+            if resp.status_code != 200:
+                resp.close()
+                last_exc = RuntimeError(f"HTTP {resp.status_code}")
+            else:
+                data = resp.raw.read(MAX_BYTES + 1)
+                resp.close()
+                if len(data) > MAX_BYTES:
+                    return None
+                if not is_mp3(data):
+                    return None
+                return data
+        except (requests.ConnectionError, requests.Timeout, requests.ChunkedEncodingError) as e:
+            last_exc = e
+        if attempt < MAX_RETRIES - 1:
+            time.sleep(BACKOFF_BASE * (2 ** attempt))
+    return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
