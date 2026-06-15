@@ -112,7 +112,8 @@ def download_url(url: str) -> bytes | None:
     """Download a URL and return validated MP3 bytes, or None on failure.
 
     Tries up to MAX_RETRIES times with exponential backoff. Returns None if:
-    - HTTP status is not 200 after retries
+    - HTTP 4xx (permanent — no retry)
+    - HTTP 5xx after retries
     - Body fails MP3 magic-byte check (no retry — bad content rarely recovers)
     - Body exceeds MAX_BYTES
     - requests raises ConnectionError/Timeout after all retries
@@ -123,6 +124,8 @@ def download_url(url: str) -> bytes | None:
             resp = requests.get(url, headers=HEADERS, timeout=HTTP_TIMEOUT, stream=True)
             if resp.status_code != 200:
                 resp.close()
+                if 400 <= resp.status_code < 500:
+                    return None
                 last_exc = RuntimeError(f"HTTP {resp.status_code}")
             else:
                 data = resp.raw.read(MAX_BYTES + 1)
