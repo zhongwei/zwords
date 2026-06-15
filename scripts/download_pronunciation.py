@@ -74,6 +74,33 @@ def classify(url: str) -> str | None:
     return None
 
 
+def parse_pronounce_json(path: str | Path) -> dict[str, list[str]]:
+    """Parse the (malformed) pronounce.json into a dict[str, list[str]].
+
+    The file has trailing commas and orphan URLs that break json.load, so we scan
+    line-by-line: when a line contains "key": [, switch current key; when a line
+    contains an MP3 URL, append it to current key's list. Orphan URLs (no current
+    key or appearing after a key was closed and not reopened) get dropped.
+    """
+    url_re = re.compile(r'"(https?://[^"]+\.mp3)"', re.IGNORECASE)
+    key_re = re.compile(r'"([^"]+)"\s*:\s*\[')
+    result: dict[str, list[str]] = {}
+    current_key: str | None = None
+
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            m = key_re.search(line)
+            if m:
+                current_key = m.group(1).lower()
+                result.setdefault(current_key, [])
+            if current_key is not None:
+                for url in url_re.findall(line):
+                    result[current_key].append(url)
+            if "]" in line:
+                current_key = None
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")

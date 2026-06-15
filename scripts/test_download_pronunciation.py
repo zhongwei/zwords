@@ -3,7 +3,9 @@
 
 Run:  python scripts/test_download_pronunciation.py
 """
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -84,6 +86,72 @@ class TestClassify(unittest.TestCase):
         # This is an edge case unlikely in real data; pick deterministic behavior.
         url = "http://example.com/uk_pron/us/file.mp3"
         self.assertEqual(dp.classify(url), "uk")
+
+
+class TestParsePronounceJson(unittest.TestCase):
+    def _write(self, content: str) -> str:
+        fd, path = tempfile.mkstemp(suffix=".json", text=True)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+        self.addCleanup(os.remove, path)
+        return path
+
+    def test_basic_two_words(self):
+        path = self._write(
+            '{\n'
+            '    "abel": [\n'
+            '        "http://example.com/abel_us.mp3"\n'
+            '    ],\n'
+            '    "abele": [\n'
+            '        "http://example.com/abele_uk.mp3",\n'
+            '        "http://example.com/abele_us.mp3"\n'
+            '    ]\n'
+            '}'
+        )
+        result = dp.parse_pronounce_json(path)
+        self.assertEqual(result, {
+            "abel": ["http://example.com/abel_us.mp3"],
+            "abele": ["http://example.com/abele_uk.mp3", "http://example.com/abele_us.mp3"],
+        })
+
+    def test_trailing_comma_tolerated(self):
+        path = self._write(
+            '{"abel": [\n'
+            '    "http://example.com/abel.mp3",\n'   # trailing comma
+            ']}'
+        )
+        result = dp.parse_pronounce_json(path)
+        self.assertEqual(result, {"abel": ["http://example.com/abel.mp3"]})
+
+    def test_keys_lowercased(self):
+        path = self._write('{"Abel": ["http://x/y.mp3"]}')
+        result = dp.parse_pronounce_json(path)
+        self.assertEqual(result, {"abel": ["http://x/y.mp3"]})
+
+    def test_empty_array(self):
+        path = self._write('{"empty": []}')
+        result = dp.parse_pronounce_json(path)
+        self.assertEqual(result, {"empty": []})
+
+    def test_orphan_urls_after_key_ignored(self):
+        # Mirrors real file corruption: after "oxeye daisy" there are orphan URLs.
+        path = self._write(
+            '{\n'
+            '    "oxeye daisy": [\n'
+            '        "http://a/1.mp3"\n'
+            '    ],\n'
+            '        "http://orphan/2.mp3",\n'   # no key context after closing
+            '        "http://orphan/3.mp3"\n'
+            '}'
+        )
+        result = dp.parse_pronounce_json(path)
+        # Orphan URLs (no preceding "key": [ on a recent line) are silently dropped
+        self.assertEqual(result, {"oxeye daisy": ["http://a/1.mp3"]})
+
+    def test_https_and_uppercase_scheme(self):
+        path = self._write('{"x": ["https://example.com/a.mp3"]}')
+        result = dp.parse_pronounce_json(path)
+        self.assertEqual(result, {"x": ["https://example.com/a.mp3"]})
 
 
 if __name__ == "__main__":
