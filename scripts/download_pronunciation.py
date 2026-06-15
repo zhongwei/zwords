@@ -208,12 +208,83 @@ def process_word(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description="Download British/American MP3 pronunciation for every word in words.db.",
+    )
     parser.add_argument("--workers", type=int, default=8, help="Concurrent download workers (default 8)")
     parser.add_argument("--limit", type=int, default=None, help="Process only first N words (smoke test)")
     args = parser.parse_args()
-    print(f"[plan] DB={DB_PATH}  pronounce={PRONOUNCE_PATH}  workers={args.workers}  limit={args.limit}")
-    print("[plan] skeleton only — implement in later tasks")
+
+    # --- Sanity checks on inputs ----------------------------------------
+    if not DB_PATH.exists():
+        print(f"ERROR: database not found at {DB_PATH}", file=sys.stderr)
+        sys.exit(1)
+    if not PRONOUNCE_PATH.exists():
+        print(f"ERROR: pronounce.json not found at {PRONOUNCE_PATH}", file=sys.stderr)
+        sys.exit(1)
+
+    # --- Create output directories --------------------------------------
+    UK_DIR.mkdir(parents=True, exist_ok=True)
+    US_DIR.mkdir(parents=True, exist_ok=True)
+
+    # --- Load pronounce.json (tolerant parser) --------------------------
+    print(f"Loading {PRONOUNCE_PATH.name} ...")
+    pronounce = parse_pronounce_json(PRONOUNCE_PATH)
+    print(f"  {len(pronounce):,} entries loaded")
+
+    # --- Read all words from DB -----------------------------------------
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute("SELECT word FROM words ORDER BY id").fetchall()
+    conn.close()
+    words = [r[0] for r in rows]
+    if args.limit is not None:
+        words = words[: args.limit]
+    print(f"  {len(words):,} words to process")
+
+    # --- Build work items: (word, urls_or_empty_list) -------------------
+    work: list[tuple[str, list[str]]] = []
+    missing_in_json = 0
+    for w in words:
+        urls = pronounce.get(w.strip().lower(), [])
+        if not urls:
+            missing_in_json += 1
+        work.append((w, urls))
+
+    # --- Run concurrently ------------------------------------------------
+    stats = {
+        "uk": {"ok": 0, "exists": 0, "no_url": 0, "failed": 0},
+        "us": {"ok": 0, "exists": 0, "no_url": 0, "failed": 0},
+    }
+
+    with cf.ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = {pool.submit(process_word, w, urls): w for w, urls in work}
+        for fut in tqdm(cf.as_completed(futures), total=len(futures), desc="words", unit="word"):
+            word = futures[fut]
+            try:
+                result = fut.result()
+            except Exception as e:
+                print(f"\n[warn] {word!r} raised {type(e).__name__}: {e}", file=sys.stderr)
+                continue
+            for region in ("uk", "us"):
+                stats[region][result[region]] += 1
+
+    # --- Summary ---------------------------------------------------------
+    print("\n=== Summary ===")
+    print(f"Total words processed: {len(work):,}")
+    print(f"Words missing from pronounce.json: {missing_in_json:,}")
+    for region, label in [("uk", "UK (British)"), ("us", "US (American)")]:
+        s = stats[region]
+        total = sum(s.values())
+        print(f"\n{label}:")
+        print(f"  downloaded this run : {s['ok']:>6,}")
+        print(f"  already existed     : {s['exists']:>6,}")
+        print(f"  no classified URL   : {s['no_url']:>6,}")
+        print(f"  all downloads failed: {s['failed']:>6,}")
+        if total:
+            coverage = (s['ok'] + s['exists']) / total * 100
+            print(f"  coverage            : {coverage:>5.1f}%  ({s['ok'] + s['exists']:,}/{total:,})")
+
+    print(f"\nOutput: {AUDIO_ROOT}")
 
 
 if __name__ == "__main__":
