@@ -35,3 +35,9 @@ words.db-wal
 
 # Superpowers brainstorming mockups
 .superpowers/
+
+# Pronunciation audio (large, externally sourced)
+audio/
+
+# Python cache
+__pycache__/
