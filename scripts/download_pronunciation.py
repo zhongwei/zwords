@@ -121,20 +121,18 @@ def download_url(url: str) -> bytes | None:
     last_exc: Exception | None = None
     for attempt in range(MAX_RETRIES):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=HTTP_TIMEOUT, stream=True)
-            if resp.status_code != 200:
-                resp.close()
-                if 400 <= resp.status_code < 500:
-                    return None
-                last_exc = RuntimeError(f"HTTP {resp.status_code}")
-            else:
-                data = resp.raw.read(MAX_BYTES + 1)
-                resp.close()
-                if len(data) > MAX_BYTES:
-                    return None
-                if not is_mp3(data):
-                    return None
-                return data
+            with requests.get(url, headers=HEADERS, timeout=HTTP_TIMEOUT, stream=True) as resp:
+                if resp.status_code != 200:
+                    if 400 <= resp.status_code < 500:
+                        return None
+                    last_exc = RuntimeError(f"HTTP {resp.status_code}")
+                else:
+                    data = resp.raw.read(MAX_BYTES + 1)
+                    if len(data) > MAX_BYTES:
+                        return None
+                    if not is_mp3(data):
+                        return None
+                    return data
         except (requests.ConnectionError, requests.Timeout, requests.exceptions.ChunkedEncodingError) as e:
             last_exc = e
         if attempt < MAX_RETRIES - 1:
@@ -191,7 +189,9 @@ def process_word(
         if data is None:
             result["uk"] = "failed"
         else:
-            uk_path.write_bytes(data)
+            tmp = uk_path.with_suffix(".mp3.tmp")
+            tmp.write_bytes(data)
+            os.replace(tmp, uk_path)
             result["uk"] = "ok"
 
     # US
@@ -204,7 +204,9 @@ def process_word(
         if data is None:
             result["us"] = "failed"
         else:
-            us_path.write_bytes(data)
+            tmp = us_path.with_suffix(".mp3.tmp")
+            tmp.write_bytes(data)
+            os.replace(tmp, us_path)
             result["us"] = "ok"
 
     return result
