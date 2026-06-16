@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useWord } from "@/hooks/useWords";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ export default function WordDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const [searchParams] = useSearchParams();
   const { data, isLoading } = useWord(Number(id));
 
   if (isLoading) {
@@ -44,7 +45,9 @@ export default function WordDetail() {
     <div className="space-y-6">
       <Button
         variant="ghost"
-        onClick={() => navigate("/words")}
+        onClick={() =>
+          navigate(`/words${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)
+        }
         className="gap-2 text-gray-400 hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
