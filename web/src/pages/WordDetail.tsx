@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
+import { useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useWord } from "@/hooks/useWords";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Volume2 } from "lucide-react";
+import { audioUrl } from "@/lib/audio";
 import ParallaxCard from "@/components/word-detail/ParallaxCard";
 import WordField from "@/components/word-detail/WordField";
 import ExampleQuote from "@/components/word-detail/ExampleQuote";
@@ -17,6 +19,9 @@ export default function WordDetail() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { data, isLoading } = useWord(Number(id));
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playingVariant, setPlayingVariant] = useState<"uk" | "us" | null>(null);
 
   if (isLoading) {
     return (
@@ -31,6 +36,18 @@ export default function WordDetail() {
   }
 
   const { word, examples, synonyms, learning_status } = data;
+
+  const play = (variant: "uk" | "us") => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (playingVariant === variant) {
+      el.pause();
+      setPlayingVariant(null);
+      return;
+    }
+    el.src = audioUrl(word.id, variant);
+    el.play().then(() => setPlayingVariant(variant)).catch(() => setPlayingVariant(null));
+  };
 
   const statusLabel = () => {
     if (!learning_status)
@@ -84,11 +101,37 @@ export default function WordDetail() {
               {word.word}
             </h1>
 
-            {phoneticLine && (
-              <div className="wd-phonetic" style={z(35)}>
-                {phoneticLine}
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-3" style={z(35)}>
+              {phoneticLine && <div className="wd-phonetic">{phoneticLine}</div>}
+              {word.has_audio_uk && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t.audio.uk}
+                  onClick={(e) => { e.stopPropagation(); play("uk"); }}
+                  className={playingVariant === "uk" ? "text-violet-300" : "text-gray-400 hover:text-white"}
+                >
+                  <Volume2 className="h-4 w-4" />
+                  <span className="ml-1 text-xs">{t.audio.uk}</span>
+                </Button>
+              )}
+              {word.has_audio_us && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t.audio.us}
+                  onClick={(e) => { e.stopPropagation(); play("us"); }}
+                  className={playingVariant === "us" ? "text-violet-300" : "text-gray-400 hover:text-white"}
+                >
+                  <Volume2 className="h-4 w-4" />
+                  <span className="ml-1 text-xs">{t.audio.us}</span>
+                </Button>
+              )}
+              <audio
+                ref={audioRef}
+                onEnded={() => setPlayingVariant(null)}
+              />
+            </div>
 
             {(word.meaning_cn || word.meaning_en) && (
               <div className="wd-meaning" style={z(45)}>
