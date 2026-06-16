@@ -259,6 +259,40 @@
   width: 100%;
   max-width: 42rem;
   margin: 0 auto;
+  height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+/* 把固定高度逐层下传到 .wd-content（内部滚动；中央卡边框保持固定） */
+.wd-cf-center-wrap > .relative {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wd-cf-center-wrap .max-w-2xl {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wd-cf-center-wrap .wd-scene {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wd-cf-center-wrap .wd-card-3d {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.wd-cf-center-wrap .wd-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 .wd-cf-center {
   z-index: 30;

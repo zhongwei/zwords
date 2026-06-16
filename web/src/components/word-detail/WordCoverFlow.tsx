@@ -76,6 +76,9 @@ export default function WordCoverFlow({ words, currentId, page, onNavigate }: Wo
     const el = stageRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      // 在中央卡片上滚动 → 让卡片内容滚动，不翻页
+      const target = e.target as Element | null;
+      if (target && target.closest && target.closest(".wd-cf-center-wrap")) return;
       e.preventDefault();
       if (wheelLock.current) {
         wheelAccum.current = 0;
