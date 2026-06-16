@@ -167,3 +167,82 @@ pub fn delete_word(conn: &Connection, id: i64) -> Result<(), AppError> {
     }
     Ok(())
 }
+
+pub fn get_word_audio(
+    conn: &Connection,
+    id: i64,
+    variant: &str,
+) -> Result<Option<Vec<u8>>, AppError> {
+    // Column name is selected from a fixed allow-list (not user input), so dynamic
+    // SQL string interpolation here is safe from injection.
+    let column = match variant {
+        "uk" => "audio_uk",
+        "us" => "audio_us",
+        _ => return Err(AppError::NotFound(format!("Unknown audio variant: {}", variant))),
+    };
+    let sql = format!("SELECT {} FROM words WHERE id = ?1", column);
+    match conn.query_row(&sql, params![id], |row| row.get::<_, Option<Vec<u8>>>(0)) {
+        Ok(blob) => Ok(blob),
+        Err(rusqlite::Error::QueryReturnedNoRows) => {
+            Err(AppError::NotFound(format!("Word {} not found", id)))
+        }
+        Err(e) => Err(e.into()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    fn setup_db() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT, audio_uk BLOB, audio_us BLOB)",
+        )
+        .unwrap();
+        conn
+    }
+
+    #[test]
+    fn audio_returns_blob_when_present() {
+        let conn = setup_db();
+        conn.execute(
+            "INSERT INTO words (id, word, audio_uk, audio_us) VALUES (1, 'abandon', X'DEADBEEF', NULL)",
+            [],
+        )
+        .unwrap();
+        let bytes = get_word_audio(&conn, 1, "uk").unwrap().unwrap();
+        assert_eq!(bytes, vec![0xDE, 0xAD, 0xBE, 0xEF]);
+    }
+
+    #[test]
+    fn audio_returns_none_when_blob_is_null() {
+        let conn = setup_db();
+        conn.execute(
+            "INSERT INTO words (id, word, audio_uk, audio_us) VALUES (1, 'x', NULL, NULL)",
+            [],
+        )
+        .unwrap();
+        assert_eq!(get_word_audio(&conn, 1, "us").unwrap(), None);
+    }
+
+    #[test]
+    fn audio_missing_word_is_not_found_error() {
+        let conn = setup_db();
+        let err = get_word_audio(&conn, 999, "uk").unwrap_err();
+        assert!(matches!(err, AppError::NotFound(_)));
+    }
+
+    #[test]
+    fn audio_invalid_variant_is_not_found_error() {
+        let conn = setup_db();
+        conn.execute(
+            "INSERT INTO words (id, word, audio_uk, audio_us) VALUES (1, 'x', NULL, NULL)",
+            [],
+        )
+        .unwrap();
+        let err = get_word_audio(&conn, 1, "foo").unwrap_err();
+        assert!(matches!(err, AppError::NotFound(_)));
+    }
+}
