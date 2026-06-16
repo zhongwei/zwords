@@ -15,7 +15,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 DB_PATH = os.path.join(PROJECT_DIR, "words.db")
 AUDIO_DIR = os.path.join(PROJECT_DIR, "audio")
-COLUMNS = ("audio_uk", "audio_us")  # (column, subdir) pairs below
 VARIANTS = [("audio_uk", "uk"), ("audio_us", "us")]
 
 
