@@ -21,6 +21,7 @@ async fn main() {
     let app = Router::new()
         .route("/api/words", get(handlers::words::list_words).post(handlers::words::create_word))
         .route("/api/words/{id}", get(handlers::words::get_word).put(handlers::words::update_word).delete(handlers::words::delete_word))
+        .route("/api/words/{id}/audio/{variant}", get(handlers::words::get_word_audio))
         .route("/api/review/next", get(handlers::review::get_next_review))
         .route("/api/review/{word_id}/answer", post(handlers::review::submit_review))
         .route("/api/quiz/generate", post(handlers::quiz::generate_quiz))

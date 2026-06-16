@@ -1,4 +1,7 @@
+use axum::body::Body;
 use axum::extract::{Path, Query, State};
+use axum::http::header;
+use axum::response::Response;
 use axum::Json;
 use crate::db::Db;
 use crate::error::AppError;
@@ -51,4 +54,27 @@ pub async fn delete_word(
     let conn = db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
     services::words::delete_word(&conn, id)?;
     Ok(Json(serde_json::json!({"deleted": true})))
+}
+
+pub async fn get_word_audio(
+    State(db): State<Db>,
+    Path((id, variant)): Path<(i64, String)>,
+) -> Result<Response, AppError> {
+    let conn = db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let blob = services::words::get_word_audio(&conn, id, &variant)?;
+    match blob {
+        Some(bytes) => {
+            let len = bytes.len();
+            let mut resp = Response::new(Body::from(bytes));
+            resp.headers_mut()
+                .insert(header::CONTENT_TYPE, "audio/ogg".parse().unwrap());
+            resp.headers_mut()
+                .insert(header::CONTENT_LENGTH, len.to_string().parse().unwrap());
+            Ok(resp)
+        }
+        None => Err(AppError::NotFound(format!(
+            "Audio '{}' for word {} not found",
+            variant, id
+        ))),
+    }
 }
