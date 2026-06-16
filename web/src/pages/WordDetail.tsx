@@ -83,7 +83,12 @@ export default function WordDetail() {
       </div>
 
       {coverFlowMode ? (
-        <WordCoverFlow words={listData!.data} currentId={numericId} onNavigate={goId} />
+        <WordCoverFlow
+          words={listData!.data}
+          currentId={numericId}
+          page={listParams.page ?? 1}
+          onNavigate={goId}
+        />
       ) : (
         <WordDetailCard data={wordData} />
       )}

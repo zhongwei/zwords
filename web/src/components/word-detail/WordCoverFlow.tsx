@@ -22,10 +22,11 @@ function offsetTarget(d: number): TargetAndTransition {
 interface WordCoverFlowProps {
   words: Word[];
   currentId: number;
+  page: number;
   onNavigate: (id: number) => void;
 }
 
-export default function WordCoverFlow({ words, currentId, onNavigate }: WordCoverFlowProps) {
+export default function WordCoverFlow({ words, currentId, page, onNavigate }: WordCoverFlowProps) {
   const { t } = useI18n();
   const { data, isLoading } = useWord(currentId);
   const currentIndex = useMemo(
@@ -43,6 +44,12 @@ export default function WordCoverFlow({ words, currentId, onNavigate }: WordCove
 
   const atStart = currentIndex <= 0;
   const atEnd = currentIndex >= words.length - 1;
+
+  const positionLabel = t.wordDetail.coverFlow.position
+    .replace("{page}", String(page))
+    .replace("{current}", String(currentIndex + 1))
+    .replace("{total}", String(words.length));
+  const progressPct = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0;
 
   const go = (dir: -1 | 1) => {
     const next = words[currentIndex + dir];
@@ -113,6 +120,9 @@ export default function WordCoverFlow({ words, currentId, onNavigate }: WordCove
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      <div className="mb-3 flex justify-end">
+        <span className="wd-cf-position">{positionLabel}</span>
+      </div>
       <AnimatePresence initial={false}>
         {visible.map(({ word, d }) => {
           const target = offsetTarget(d);
@@ -164,6 +174,9 @@ export default function WordCoverFlow({ words, currentId, onNavigate }: WordCove
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
+        <div className="wd-cf-progress" aria-hidden>
+          <div className="wd-cf-progress-fill" style={{ width: `${progressPct}%` }} />
+        </div>
         <Button
           variant="outline"
           size="icon"
