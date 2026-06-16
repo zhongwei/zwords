@@ -67,19 +67,20 @@ export default function WordDetail() {
     navigate(`/words/${nextId}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`);
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" onClick={backTo} className="gap-2 text-gray-400 hover:text-white">
-        <ArrowLeft className="h-4 w-4" />
-        {t.wordDetail.back}
-      </Button>
-
-      <div className="flex items-center gap-3">
-        <Badge className={sl.cls}>{sl.text}</Badge>
-        {word.source && (
-          <Badge variant="outline" className="border-white/20 text-gray-400">
-            {word.source}
-          </Badge>
-        )}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={backTo} className="gap-2 text-gray-400 hover:text-white">
+          <ArrowLeft className="h-4 w-4" />
+          {t.wordDetail.back}
+        </Button>
+        <div className="flex items-center gap-2">
+          <Badge className={sl.cls}>{sl.text}</Badge>
+          {word.source && (
+            <Badge variant="outline" className="border-white/20 text-gray-400">
+              {word.source}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {coverFlowMode ? (
