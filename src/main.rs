@@ -26,6 +26,7 @@ async fn main() {
         .route("/api/review/{word_id}/answer", post(handlers::review::submit_review))
         .route("/api/quiz/generate", post(handlers::quiz::generate_quiz))
         .route("/api/quiz/{id}/submit", post(handlers::quiz::submit_quiz))
+        .route("/api/typing/result", post(handlers::typing::submit_typing_result))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .fallback(static_files::static_handler)

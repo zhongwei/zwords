@@ -162,3 +162,21 @@ pub struct QuizResultItem {
     pub correct_answer: String,
     pub user_answer: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct TypingWordResult {
+    pub word_id: i64,
+    pub correct: bool,
+    pub error_count: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TypingResultRequest {
+    pub results: Vec<TypingWordResult>,
+    pub total_time_ms: u64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TypingResultResponse {
+    pub updated: u32,
+}
