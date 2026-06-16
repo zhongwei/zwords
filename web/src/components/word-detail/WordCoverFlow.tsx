@@ -34,29 +34,25 @@ export default function WordCoverFlow({ words, currentId, page, onNavigate }: Wo
     [words, currentId]
   );
 
-  const visible = useMemo(() => {
+  const sideCards = useMemo(() => {
     const start = Math.max(0, currentIndex - VISIBLE);
     const end = Math.min(words.length - 1, currentIndex + VISIBLE);
     const arr: { word: Word; d: number }[] = [];
-    for (let i = start; i <= end; i++) arr.push({ word: words[i], d: i - currentIndex });
+    for (let i = start; i <= end; i++) {
+      if (i === currentIndex) continue;
+      arr.push({ word: words[i], d: i - currentIndex });
+    }
     return arr;
   }, [words, currentIndex]);
 
   const atStart = currentIndex <= 0;
   const atEnd = currentIndex >= words.length - 1;
 
-  const positionLabel = t.wordDetail.coverFlow.position
-    .replace("{page}", String(page))
-    .replace("{current}", String(currentIndex + 1))
-    .replace("{total}", String(words.length));
-  const progressPct = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0;
-
   const go = (dir: -1 | 1) => {
     const next = words[currentIndex + dir];
     if (next) onNavigate(next.id);
   };
 
-  // 键盘 ← →
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
@@ -73,7 +69,6 @@ export default function WordCoverFlow({ words, currentId, page, onNavigate }: Wo
     return () => window.removeEventListener("keydown", onKey);
   }, [currentIndex, words, onNavigate]);
 
-  // 鼠标滚轮（原生非被动监听 + 节流，避免一次滚动跳过多张）
   const stageRef = useRef<HTMLDivElement>(null);
   const wheelAccum = useRef(0);
   const wheelLock = useRef(false);
@@ -101,7 +96,6 @@ export default function WordCoverFlow({ words, currentId, page, onNavigate }: Wo
     return () => el.removeEventListener("wheel", onWheel);
   }, [currentIndex, words, onNavigate]);
 
-  // 触摸左右滑
   const touchStartX = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -113,55 +107,63 @@ export default function WordCoverFlow({ words, currentId, page, onNavigate }: Wo
     touchStartX.current = null;
   };
 
+  const positionLabel = t.wordDetail.coverFlow.position
+    .replace("{page}", String(page))
+    .replace("{current}", String(currentIndex + 1))
+    .replace("{total}", String(words.length));
+  const progressPct = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0;
+
   return (
-    <div
-      ref={stageRef}
-      className="wd-cf-stage"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      <div className="mb-3 flex justify-end">
+    <>
+      <div
+        ref={stageRef}
+        className="wd-cf-stage"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <span className="wd-cf-position">{positionLabel}</span>
-      </div>
-      <AnimatePresence initial={false}>
-        {visible.map(({ word, d }) => {
-          const target = offsetTarget(d);
-          const isCenter = d === 0;
-          return (
-            <motion.div
-              key={word.id}
-              className={isCenter ? "wd-cf-card wd-cf-center" : "wd-cf-card wd-cf-side"}
-              initial={{ opacity: 0 }}
-              animate={target}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-              transformTemplate={(_, g) => `translate(-50%, -50%) ${g}`}
-              onClick={isCenter ? undefined : () => onNavigate(word.id)}
-              style={isCenter ? undefined : { width: "auto", maxWidth: "none" }}
-            >
-              {isCenter ? (
-                isLoading || !data ? (
-                  <div className="flex items-center justify-center py-32 text-gray-400">
-                    Loading...
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <WordDetailCard data={data} />
-                    <div className="wd-cf-reflection" aria-hidden>
-                      <div className="wd-cf-reflection-word">{data.word.word}</div>
-                    </div>
-                  </div>
-                )
-              ) : (
+
+        {/* 侧面卡片：绝对定位、相对舞台居中 */}
+        <AnimatePresence initial={false}>
+          {sideCards.map(({ word, d }) => {
+            const target = offsetTarget(d);
+            return (
+              <motion.div
+                key={word.id}
+                className="wd-cf-card wd-cf-side"
+                initial={{ opacity: 0 }}
+                animate={target}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                transformTemplate={(_, g) => `translate(-50%, -50%) ${g}`}
+                onClick={() => onNavigate(word.id)}
+                style={{ width: "auto", maxWidth: "none" }}
+              >
                 <div className="wd-cf-side-card">
                   <div className="wd-cf-side-word">{word.word}</div>
                   {word.phonetic && <div className="wd-cf-side-pho">{word.phonetic}</div>}
                 </div>
-              )}
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
+        {/* 中央卡：正常文档流（决定舞台高度，控件不会被遮挡） */}
+        <div className="wd-cf-center-wrap">
+          {isLoading || !data ? (
+            <div className="flex items-center justify-center py-32 text-gray-400">
+              Loading...
+            </div>
+          ) : (
+            <div className="relative">
+              <WordDetailCard key={currentId} data={data} />
+              <div className="wd-cf-reflection" aria-hidden>
+                <div className="wd-cf-reflection-word">{data.word.word}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="wd-cf-controls">
         <Button
@@ -188,6 +190,6 @@ export default function WordCoverFlow({ words, currentId, page, onNavigate }: Wo
           <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
-    </div>
+    </>
   );
 }

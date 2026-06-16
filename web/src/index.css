@@ -242,7 +242,6 @@
   position: relative;
   perspective: 1100px;
   perspective-origin: 50% 45%;
-  height: 560px;
   touch-action: pan-y;
   user-select: none;
 }
@@ -253,6 +252,13 @@
   width: 100%;
   max-width: 42rem;
   will-change: transform, opacity;
+}
+.wd-cf-center-wrap {
+  position: relative;
+  z-index: 30;
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
 }
 .wd-cf-center {
   z-index: 30;
@@ -315,7 +321,7 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  margin-top: 8px;
+  margin-top: 28px;
 }
 .wd-cf-progress {
   width: 220px;
@@ -330,6 +336,10 @@
   transition: width 0.35s ease;
 }
 .wd-cf-position {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 40;
   font-size: 13px;
   color: #c4b5fd;
   background: rgba(139, 92, 246, 0.18);
