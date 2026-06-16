@@ -98,3 +98,18 @@ export interface GenerateQuizParams {
   source?: string;
   type?: string;
 }
+
+export interface TypingWordResult {
+  word_id: number;
+  correct: boolean;
+  error_count: number;
+}
+
+export interface TypingResultRequest {
+  results: TypingWordResult[];
+  total_time_ms: number;
+}
+
+export interface TypingResultResponse {
+  updated: number;
+}

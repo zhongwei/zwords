@@ -7,6 +7,8 @@ import type {
   Quiz,
   QuizResult,
   GenerateQuizParams,
+  TypingResultRequest,
+  TypingResultResponse,
 } from "./types";
 
 const BASE = "/api";
@@ -60,6 +62,13 @@ export const api = {
     return request(`/quiz/${quizId}/submit`, {
       method: "POST",
       body: JSON.stringify({ answers }),
+    });
+  },
+
+  submitTypingResult(req: TypingResultRequest): Promise<TypingResultResponse> {
+    return request(`/typing/result`, {
+      method: "POST",
+      body: JSON.stringify(req),
     });
   },
 };

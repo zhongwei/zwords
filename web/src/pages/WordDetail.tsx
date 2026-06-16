@@ -3,7 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useWord, useWords } from "@/hooks/useWords";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Keyboard } from "lucide-react";
 import WordDetailCard from "@/components/word-detail/WordDetailCard";
 import WordCoverFlow from "@/components/word-detail/WordCoverFlow";
 import type { ListWordsParams } from "@/lib/types";
@@ -73,6 +73,16 @@ export default function WordDetail() {
           <ArrowLeft className="h-4 w-4" />
           {t.wordDetail.back}
         </Button>
+        {coverFlowMode && (
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/words/${id}/typing${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}
+            className="gap-2 border-violet-500/40 text-violet-300 hover:bg-violet-500/20 hover:text-violet-200"
+          >
+            <Keyboard className="h-4 w-4" />
+            {t.typing.title}
+          </Button>
+        )}
         <div className="flex items-center gap-2">
           <Badge className={sl.cls}>{sl.text}</Badge>
           {word.source && (
