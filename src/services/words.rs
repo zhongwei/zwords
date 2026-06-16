@@ -40,7 +40,8 @@ pub fn list_words(conn: &Connection, query: &ListWordsQuery) -> Result<(Vec<Word
     let total: u32 = conn.query_row(&count_sql, param_values.iter().map(|p| p.as_ref()).collect::<Vec<_>>().as_slice(), |row| row.get(0))?;
 
     let query_sql = format!(
-        "SELECT w.id, w.word, w.source, w.stage, w.phonetic, w.pos, w.meaning_cn, w.meaning_en, w.root, w.association, w.collocations, w.derivatives, w.\"references\" \
+        "SELECT w.id, w.word, w.source, w.stage, w.phonetic, w.pos, w.meaning_cn, w.meaning_en, w.root, w.association, w.collocations, w.derivatives, w.\"references\", \
+         w.audio_uk IS NOT NULL AS has_audio_uk, w.audio_us IS NOT NULL AS has_audio_us \
          FROM words w LEFT JOIN learning_status ls ON w.id = ls.word_id \
          {} ORDER BY w.id LIMIT ?{} OFFSET ?{}",
         where_sql, param_values.len() + 1, param_values.len() + 2
@@ -66,6 +67,8 @@ pub fn list_words(conn: &Connection, query: &ListWordsQuery) -> Result<(Vec<Word
             collocations: row.get(10)?,
             derivatives: row.get(11)?,
             references: row.get(12)?,
+            has_audio_uk: row.get(13)?,
+            has_audio_us: row.get(14)?,
         })
     })?.collect::<Result<Vec<_>, _>>()?;
 
@@ -74,7 +77,7 @@ pub fn list_words(conn: &Connection, query: &ListWordsQuery) -> Result<(Vec<Word
 
 pub fn get_word(conn: &Connection, id: i64) -> Result<WordDetail, AppError> {
     let word = conn.query_row(
-        "SELECT id, word, source, stage, phonetic, pos, meaning_cn, meaning_en, root, association, collocations, derivatives, \"references\" FROM words WHERE id = ?1",
+        "SELECT id, word, source, stage, phonetic, pos, meaning_cn, meaning_en, root, association, collocations, derivatives, \"references\", audio_uk IS NOT NULL AS has_audio_uk, audio_us IS NOT NULL AS has_audio_us FROM words WHERE id = ?1",
         params![id],
         |row| Ok(Word {
             id: row.get(0)?,
@@ -90,6 +93,8 @@ pub fn get_word(conn: &Connection, id: i64) -> Result<WordDetail, AppError> {
             collocations: row.get(10)?,
             derivatives: row.get(11)?,
             references: row.get(12)?,
+            has_audio_uk: row.get(13)?,
+            has_audio_us: row.get(14)?,
         }),
     ).map_err(|_| AppError::NotFound(format!("Word {} not found", id)))?;
 

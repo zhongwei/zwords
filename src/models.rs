@@ -15,6 +15,8 @@ pub struct Word {
     pub collocations: Option<String>,
     pub derivatives: Option<String>,
     pub references: Option<String>,
+    pub has_audio_uk: bool,
+    pub has_audio_us: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
