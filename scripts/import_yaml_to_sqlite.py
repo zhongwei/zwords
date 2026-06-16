@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS words (
     collocations TEXT,
     derivatives TEXT,
     "references" TEXT,
+    audio_uk BLOB,
+    audio_us BLOB,
     UNIQUE(word, source) ON CONFLICT IGNORE
 );
 
