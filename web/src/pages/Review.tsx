@@ -1,12 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
 import { useNextReview } from "@/hooks/useWords";
 import { api } from "@/lib/api";
+import { audioUrl } from "@/lib/audio";
 import Card3D from "@/components/shared/Card3D";
 import ParticleExplosion from "@/components/shared/ParticleExplosion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Volume2 } from "lucide-react";
 
 const qualityLabels = [
   "quality0", "quality1", "quality2", "quality3", "quality4", "quality5",
@@ -31,8 +33,26 @@ export default function Review() {
   const [explosion, setExplosion] = useState(false);
   const [explosionSuccess, setExplosionSuccess] = useState(true);
 
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playingVariant, setPlayingVariant] = useState<"uk" | "us" | null>(null);
+
   const current = words[currentIndex];
   const total = words.length;
+
+  const play = useCallback(
+    (variant: "uk" | "us") => {
+      const el = audioRef.current;
+      if (!el || !current) return;
+      if (playingVariant === variant) {
+        el.pause();
+        setPlayingVariant(null);
+        return;
+      }
+      el.src = audioUrl(current.word.id, variant);
+      el.play().then(() => setPlayingVariant(variant)).catch(() => setPlayingVariant(null));
+    },
+    [current, playingVariant]
+  );
 
   const handleAnswer = useCallback(
     async (quality: number) => {
@@ -47,6 +67,8 @@ export default function Review() {
           if (currentIndex < total - 1) {
             setCurrentIndex(currentIndex + 1);
             setFlipped(false);
+            if (audioRef.current) audioRef.current.pause();
+            setPlayingVariant(null);
           } else {
             setCurrentIndex(total);
           }
@@ -102,6 +124,38 @@ export default function Review() {
             onClick={() => setFlipped(!flipped)}
           />
         </div>
+        {(current.word.has_audio_uk || current.word.has_audio_us) && (
+          <div className="mt-3 flex items-center justify-center gap-3">
+            {current.word.has_audio_uk && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t.audio.uk}
+                onClick={() => play("uk")}
+                className={playingVariant === "uk" ? "text-violet-300" : "text-gray-400 hover:text-white"}
+              >
+                <Volume2 className="h-4 w-4" />
+                <span className="ml-1 text-xs">{t.audio.uk}</span>
+              </Button>
+            )}
+            {current.word.has_audio_us && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t.audio.us}
+                onClick={() => play("us")}
+                className={playingVariant === "us" ? "text-violet-300" : "text-gray-400 hover:text-white"}
+              >
+                <Volume2 className="h-4 w-4" />
+                <span className="ml-1 text-xs">{t.audio.us}</span>
+              </Button>
+            )}
+            <audio
+              ref={audioRef}
+              onEnded={() => setPlayingVariant(null)}
+            />
+          </div>
+        )}
       </div>
 
       {flipped && (
