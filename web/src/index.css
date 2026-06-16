@@ -256,10 +256,10 @@
 .wd-cf-center-wrap {
   position: relative;
   z-index: 30;
-  width: 100%;
-  max-width: 42rem;
+  width: 42rem;
+  max-width: none;
   margin: 0 auto;
-  height: 70vh;
+  height: 85vh;
   display: flex;
   flex-direction: column;
 }
