@@ -29,7 +29,8 @@ target
 web/dist/
 web/node_modules/
 
-# SQLite runtime files (regenerate on every server run with WAL mode)
+# SQLite database (regenerable via scripts/import_yaml_to_sqlite.py + scripts/add_audio_to_db.py)
+words.db
 words.db-shm
 words.db-wal
 
