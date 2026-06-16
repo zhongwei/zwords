@@ -15,7 +15,6 @@ export default function ExampleQuote({
   return (
     <blockquote className="wd-quote">
       <p className="wd-quote-en">
-        &ldquo;
         {segments.map((seg, i) =>
           seg.hit ? (
             <span key={i} className="wd-hit">
@@ -25,7 +24,6 @@ export default function ExampleQuote({
             <span key={i}>{seg.text}</span>
           )
         )}
-        &rdquo;
       </p>
       {translation && <p className="wd-quote-cn">{translation}</p>}
     </blockquote>
