@@ -259,7 +259,7 @@
   width: 42rem;
   max-width: none;
   margin: 0 auto;
-  height: 85vh;
+  height: 80vh;
   display: flex;
   flex-direction: column;
 }
@@ -302,7 +302,7 @@
   z-index: 10;
 }
 .wd-cf-side-card {
-  width: 14rem;
+  width: 16rem;
   height: 18rem;
   border-radius: 16px;
   background: linear-gradient(160deg, rgba(139, 92, 246, 0.16), rgba(30, 27, 75, 0.55));

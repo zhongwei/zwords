@@ -14,9 +14,9 @@ function offsetTarget(d: number): TargetAndTransition {
   const sign = Math.sign(d);
   const a = Math.abs(d);
   if (a === 0) return { x: 0, z: 0, rotateY: 0, opacity: 1 };
-  if (a === 1) return { x: sign * 360, z: -120, rotateY: sign * -50, opacity: 0.6 };
-  if (a === 2) return { x: sign * 500, z: -260, rotateY: sign * -56, opacity: 0.35 };
-  return { x: sign * 620, z: -420, rotateY: sign * -60, opacity: 0.18 };
+  if (a === 1) return { x: sign * 500, z: -120, rotateY: sign * -50, opacity: 0.6 };
+  if (a === 2) return { x: sign * 780, z: -260, rotateY: sign * -56, opacity: 0.35 };
+  return { x: sign * 1060, z: -420, rotateY: sign * -60, opacity: 0.18 };
 }
 
 interface WordCoverFlowProps {
