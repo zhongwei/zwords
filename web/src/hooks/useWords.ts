@@ -6,6 +6,7 @@ export function useWords(params?: ListWordsParams) {
   return useQuery({
     queryKey: ["words", params],
     queryFn: () => api.listWords(params),
+    enabled: params !== undefined,
   });
 }
 
