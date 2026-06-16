@@ -1,5 +1,4 @@
-import type { CSSProperties } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useWord } from "@/hooks/useWords";
@@ -22,6 +21,27 @@ export default function WordDetail() {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playingVariant, setPlayingVariant] = useState<"uk" | "us" | null>(null);
+  const queueRef = useRef<("uk" | "us")[] | null>(null);
+  const queueIdxRef = useRef(0);
+
+  useEffect(() => {
+    if (!data) return;
+    const w = data.word;
+    const pair: ("uk" | "us")[] = [];
+    for (let i = 0; i < 3; i++) {
+      if (w.has_audio_uk) pair.push("uk");
+      if (w.has_audio_us) pair.push("us");
+    }
+    if (pair.length === 0 || !audioRef.current) return;
+    queueRef.current = pair;
+    queueIdxRef.current = 0;
+    const el = audioRef.current;
+    el.src = audioUrl(w.id, pair[0]);
+    el.play().then(() => setPlayingVariant(pair[0])).catch(() => {
+      queueRef.current = null;
+      setPlayingVariant(null);
+    });
+  }, [data]);
 
   if (isLoading) {
     return (
@@ -40,6 +60,7 @@ export default function WordDetail() {
   const play = (variant: "uk" | "us") => {
     const el = audioRef.current;
     if (!el) return;
+    queueRef.current = null;
     if (playingVariant === variant) {
       el.pause();
       setPlayingVariant(null);
@@ -47,6 +68,29 @@ export default function WordDetail() {
     }
     el.src = audioUrl(word.id, variant);
     el.play().then(() => setPlayingVariant(variant)).catch(() => setPlayingVariant(null));
+  };
+
+  const handleEnded = () => {
+    const q = queueRef.current;
+    if (!q) {
+      setPlayingVariant(null);
+      return;
+    }
+    queueIdxRef.current += 1;
+    if (queueIdxRef.current < q.length) {
+      const next = q[queueIdxRef.current];
+      const el = audioRef.current;
+      if (el) {
+        el.src = audioUrl(word.id, next);
+        el.play().then(() => setPlayingVariant(next)).catch(() => {
+          queueRef.current = null;
+          setPlayingVariant(null);
+        });
+      }
+      return;
+    }
+    queueRef.current = null;
+    setPlayingVariant(null);
   };
 
   const statusLabel = () => {
@@ -101,35 +145,33 @@ export default function WordDetail() {
               {word.word}
             </h1>
 
-            <div className="flex items-center justify-center gap-3" style={z(35)}>
+            <div className="mt-4 flex items-center justify-center gap-5" style={z(35)}>
               {phoneticLine && <div className="wd-phonetic">{phoneticLine}</div>}
               {word.has_audio_uk && (
                 <Button
                   variant="ghost"
-                  size="icon-sm"
                   aria-label={t.audio.uk}
                   onClick={(e) => { e.stopPropagation(); play("uk"); }}
                   className={playingVariant === "uk" ? "text-violet-300" : "text-gray-400 hover:text-white"}
                 >
-                  <Volume2 className="h-4 w-4" />
-                  <span className="ml-1 text-xs">{t.audio.uk}</span>
+                  <Volume2 className="h-5 w-5" />
+                  <span className="ml-1.5 text-sm font-medium">{t.audio.uk}</span>
                 </Button>
               )}
               {word.has_audio_us && (
                 <Button
                   variant="ghost"
-                  size="icon-sm"
                   aria-label={t.audio.us}
                   onClick={(e) => { e.stopPropagation(); play("us"); }}
                   className={playingVariant === "us" ? "text-violet-300" : "text-gray-400 hover:text-white"}
                 >
-                  <Volume2 className="h-4 w-4" />
-                  <span className="ml-1 text-xs">{t.audio.us}</span>
+                  <Volume2 className="h-5 w-5" />
+                  <span className="ml-1.5 text-sm font-medium">{t.audio.us}</span>
                 </Button>
               )}
               <audio
                 ref={audioRef}
-                onEnded={() => setPlayingVariant(null)}
+                onEnded={handleEnded}
               />
             </div>
 
