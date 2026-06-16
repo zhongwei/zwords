@@ -45,6 +45,11 @@ export default {
     statusReview: "Reviewing",
     statusMastered: "Mastered",
     statusNew: "New",
+    coverFlow: {
+      position: "Page {page} · {current} / {total}",
+      prev: "Previous",
+      next: "Next",
+    },
   },
   review: {
     title: "Daily Review",

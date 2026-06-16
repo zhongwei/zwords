@@ -45,6 +45,11 @@ export default {
     statusReview: "复习中",
     statusMastered: "已掌握",
     statusNew: "未学习",
+    coverFlow: {
+      position: "第 {page} 页 · {current} / {total}",
+      prev: "上一个",
+      next: "下一个",
+    },
   },
   review: {
     title: "每日复习",
