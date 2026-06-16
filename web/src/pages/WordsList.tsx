@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useWords } from "@/hooks/useWords";
 import { Input } from "@/components/ui/input";
@@ -17,11 +17,23 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 export default function WordsList() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [q, setQ] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [source, setSource] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = Number(searchParams.get("page") ?? 1) || 1;
+  const q = searchParams.get("q") ?? "";
+  const source = searchParams.get("source") ?? "";
+  const status = searchParams.get("status") ?? "";
+  const [searchInput, setSearchInput] = useState(q);
+
+  const update = (next: Record<string, string | undefined>) => {
+    const sp = new URLSearchParams(searchParams);
+    for (const [k, v] of Object.entries(next)) {
+      if (v === undefined || v === "") sp.delete(k);
+      else sp.set(k, v);
+    }
+    if (!sp.has("page")) sp.set("page", "1");
+    setSearchParams(sp, { replace: false });
+  };
 
   const { data, isLoading } = useWords({
     page,
@@ -32,6 +44,15 @@ export default function WordsList() {
   });
 
   const totalPages = data ? Math.ceil(data.meta.total / data.meta.per_page) : 1;
+
+  const goDetail = (id: number) => {
+    const sp = new URLSearchParams();
+    sp.set("page", String(page));
+    if (q) sp.set("q", q);
+    if (source) sp.set("source", source);
+    if (status) sp.set("status", status);
+    navigate(`/words/${id}?${sp.toString()}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -46,14 +67,13 @@ export default function WordsList() {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setQ(searchInput);
-                setPage(1);
+                update({ q: searchInput || undefined, page: undefined });
               }
             }}
             className="border-white/10 bg-white/5 pl-10 text-white placeholder:text-gray-500"
           />
         </div>
-        <Select value={source} onValueChange={(v) => { setSource(v === "all" ? "" : (v ?? "")); setPage(1); }}>
+        <Select value={source || "all"} onValueChange={(v) => update({ source: v === "all" || v == null ? undefined : v, page: undefined })}>
           <SelectTrigger className="w-32 border-white/10 bg-white/5 text-white">
             <SelectValue placeholder={t.words.source} />
           </SelectTrigger>
@@ -63,7 +83,7 @@ export default function WordsList() {
             <SelectItem value="TOEFL">TOEFL</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={status} onValueChange={(v) => { setStatus(v === "all" ? "" : (v ?? "")); setPage(1); }}>
+        <Select value={status || "all"} onValueChange={(v) => update({ status: v === "all" || v == null ? undefined : v, page: undefined })}>
           <SelectTrigger className="w-32 border-white/10 bg-white/5 text-white">
             <SelectValue placeholder={t.words.status} />
           </SelectTrigger>
@@ -86,7 +106,7 @@ export default function WordsList() {
             {data.data.map((word) => (
               <button
                 key={word.id}
-                onClick={() => navigate(`/words/${word.id}`)}
+                onClick={() => goDetail(word.id)}
                 className="group rounded-xl border border-white/10 bg-white/5 p-3 text-left backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-violet-500/30 hover:bg-white/10"
               >
                 <div className="flex items-start justify-between">
@@ -116,7 +136,7 @@ export default function WordsList() {
               variant="outline"
               size="sm"
               disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
+              onClick={() => update({ page: String(page - 1) })}
               className="border-white/10 text-white hover:bg-white/10"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -128,7 +148,7 @@ export default function WordsList() {
               variant="outline"
               size="sm"
               disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
+              onClick={() => update({ page: String(page + 1) })}
               className="border-white/10 text-white hover:bg-white/10"
             >
               <ChevronRight className="h-4 w-4" />
