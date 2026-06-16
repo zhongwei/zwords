@@ -20,16 +20,17 @@ const navItems = [
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  dark?: boolean;
 }
 
-export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export default function Sidebar({ collapsed, onToggle, dark }: SidebarProps) {
   const { t, locale, setLocale } = useI18n();
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-40 flex h-full flex-col border-r border-white/10 bg-black/40 backdrop-blur-xl transition-all duration-300 ${
-        collapsed ? "w-16" : "w-64"
-      }`}
+      className={`fixed left-0 top-0 z-40 flex h-full flex-col border-r border-white/10 transition-all duration-300 ${
+        dark ? "bg-[#0f0f1a]" : "bg-black/40 backdrop-blur-xl"
+      } ${collapsed ? "w-16" : "w-64"}`}
     >
       <div
         className={`flex border-b border-white/10 ${

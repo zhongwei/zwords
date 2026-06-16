@@ -84,7 +84,7 @@ export default function WordDetailCard({ data }: WordDetailCardProps) {
   const blue = FIELD_THEMES.blue;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto wd-detail-root">
       <ParallaxCard>
         <div className="wd-card-bg">
           <div className="wd-glow wd-glow-1" />
