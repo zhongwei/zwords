@@ -139,14 +139,16 @@
 }
 .wd-pos {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 10px;
   border-radius: 6px;
   background: rgba(139, 92, 246, 0.15);
   border: 1px solid rgba(139, 92, 246, 0.3);
   color: #c4b5fd;
-  font-size: 14px;
+  font-size: 20px;
   font-style: italic;
   line-height: 1.4;
+  margin-right: 12px;
+  vertical-align: middle;
 }
 .wd-meaning {
   margin-top: 16px;
