@@ -97,7 +97,6 @@ export default function WordDetailCard({ data }: WordDetailCardProps) {
 
           <div className="mt-4 flex items-center justify-start gap-4" style={z(35)}>
             {word.phonetic && <div className="wd-phonetic">{word.phonetic}</div>}
-            {word.pos && <span className="wd-pos">{word.pos}</span>}
             {word.has_audio_uk && (
               <Button
                 variant="ghost"
@@ -125,7 +124,12 @@ export default function WordDetailCard({ data }: WordDetailCardProps) {
 
           {(word.meaning_cn || word.meaning_en) && (
             <div className="wd-meaning" style={z(45)}>
-              {word.meaning_cn && <div className="wd-meaning-cn">{word.meaning_cn}</div>}
+              {word.meaning_cn && (
+                <div className="wd-meaning-cn">
+                  {word.pos && <span className="wd-pos">{word.pos}</span>}
+                  {word.meaning_cn}
+                </div>
+              )}
               {word.meaning_en && <div className="wd-val-muted">{word.meaning_en}</div>}
             </div>
           )}
