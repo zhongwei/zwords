@@ -135,6 +135,17 @@
   color: #a78bfa;
   font-size: 20px;
 }
+.wd-pos {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.4;
+}
 .wd-meaning {
   margin-top: 16px;
 }

@@ -111,7 +111,6 @@ export default function WordDetail() {
   const nextIndex = () => fieldIndex++;
 
   const rootText = [word.root, word.association].filter(Boolean).join(" → ");
-  const phoneticLine = [word.phonetic, word.pos].filter(Boolean).join(" · ");
   const blue = FIELD_THEMES.blue;
 
   return (
@@ -145,8 +144,9 @@ export default function WordDetail() {
               {word.word}
             </h1>
 
-            <div className="mt-4 flex items-center justify-center gap-5" style={z(35)}>
-              {phoneticLine && <div className="wd-phonetic">{phoneticLine}</div>}
+            <div className="mt-4 flex items-center justify-start gap-4" style={z(35)}>
+              {word.phonetic && <div className="wd-phonetic">{word.phonetic}</div>}
+              {word.pos && <span className="wd-pos">{word.pos}</span>}
               {word.has_audio_uk && (
                 <Button
                   variant="ghost"
