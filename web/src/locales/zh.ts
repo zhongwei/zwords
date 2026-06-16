@@ -58,6 +58,10 @@ export default {
     quality5: "完美",
     empty: "暂无待复习的单词，干得漂亮！",
   },
+  audio: {
+    uk: "英式",
+    us: "美式",
+  },
   quiz: {
     title: "单词测验",
     config: "测验设置",

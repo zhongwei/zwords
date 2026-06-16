@@ -12,6 +12,8 @@ export interface Word {
   collocations: string | null;
   derivatives: string | null;
   references: string | null;
+  has_audio_uk: boolean;
+  has_audio_us: boolean;
 }
 
 export interface Example {

@@ -58,6 +58,10 @@ export default {
     quality5: "Perfect",
     empty: "No words to review. Great job!",
   },
+  audio: {
+    uk: "UK",
+    us: "US",
+  },
   quiz: {
     title: "Quiz",
     config: "Quiz Settings",
