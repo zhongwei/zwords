@@ -29,10 +29,10 @@ target
 web/dist/
 web/node_modules/
 
-# SQLite database (regenerable via scripts/import_yaml_to_sqlite.py + scripts/add_audio_to_db.py)
-words.db
+# SQLite WAL/journal sidecar files (transient; words.db itself is committed)
 words.db-shm
 words.db-wal
+words.db-journal
 
 # Superpowers brainstorming mockups
 .superpowers/

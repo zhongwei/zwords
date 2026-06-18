@@ -74,7 +74,7 @@ SQLite 文件 `words.db`，4 张表：
 - `synonyms` — 同义词 (word_id FK, synonym)
 - `learning_status` — 学习状态 (word_id FK, status CHECK in ('new','learning','review','mastered'), review_count, correct_count, last_reviewed_at, next_review_at, ease_factor, interval_days)
 
-连接初始化见 `src/db.rs`：开启 `WAL` journal_mode 和 `foreign_keys`；连接为 `Arc<Mutex<Connection>>`（单连接 + 互斥锁），通过 axum `State` 共享。
+连接初始化见 `src/db.rs`：开启 `DELETE` journal_mode 和 `foreign_keys`（用 DELETE 而非 WAL，避免遗留 `-shm`/`-wal` 旁路文件；单连接 + 互斥锁下 WAL 无并发收益）；连接为 `Arc<Mutex<Connection>>`（单连接 + 互斥锁），通过 axum `State` 共享。
 
 **重建数据库（破坏性）：** `scripts/import_yaml_to_sqlite.py` 从仓库根的 `GRE_Word_List.yaml` / `TOEFL_Word_List.yaml` 重新生成 `words.db`。脚本会先 **删除** 已有的 `words.db`，依赖 `pyyaml`。这是 DB 的数据来源（source of truth），不要手动 INSERT。
 
@@ -88,7 +88,7 @@ python scripts/import_yaml_to_sqlite.py   # 会覆盖现有 words.db
 src/
 ├── main.rs              # 路由装配、启动入口
 ├── config.rs            # 从环境变量读取 Config
-├── db.rs                # SQLite 连接初始化 (Arc<Mutex<Connection>>, WAL)
+├── db.rs                # SQLite 连接初始化 (Arc<Mutex<Connection>>, DELETE journal_mode)
 ├── models.rs            # 数据结构
 ├── error.rs             # AppError enum, 实现 IntoResponse
 ├── static_files.rs      # rust-embed 嵌入 web/dist/，作为路由 fallback

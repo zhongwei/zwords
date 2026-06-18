@@ -151,7 +151,7 @@ graph TB
 - **`services/`** — 业务逻辑层。手写 SQL 与算法实现（SM-2、测验题目生成）。
 - **`static_files.rs`** — 通过 `rust-embed` 在编译期把 `web/dist/` 嵌入二进制，运行时作为路由 fallback 提供 SPA 入口。
 
-**连接模型：** SQLite 单连接包在 `Arc<Mutex<Connection>>` 中，开启 `WAL` 模式与外键约束，通过 axum `State` 在 handler 间共享。
+**连接模型：** SQLite 单连接包在 `Arc<Mutex<Connection>>` 中，开启 `DELETE` journal_mode（非 WAL，避免遗留 `-shm`/`-wal` 旁路文件）与外键约束，通过 axum `State` 在 handler 间共享。
 
 </details>
 
@@ -196,7 +196,7 @@ zwords/
 ├── src/                       # Rust 后端
 │   ├── main.rs                # 路由装配、启动入口
 │   ├── config.rs              # 从环境变量读取 Config
-│   ├── db.rs                  # SQLite 连接初始化（WAL、外键）
+│   ├── db.rs                  # SQLite 连接初始化（DELETE journal_mode、外键）
 │   ├── models.rs              # 数据结构与请求/响应 DTO
 │   ├── error.rs               # AppError enum，实现 IntoResponse
 │   ├── static_files.rs        # rust-embed 嵌入 web/dist/
@@ -286,7 +286,7 @@ SQLite 单文件 `words.db`，4 张表。完整 schema 见 [`scripts/import_yaml
 | `ease_factor` | REAL | SM-2 难度系数，默认 2.5 |
 | `interval_days` | INTEGER | 当前间隔天数，默认 0 |
 
-**连接初始化（`src/db.rs`）：** `PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;`，单连接 + `Arc<Mutex>` 共享。
+**连接初始化（`src/db.rs`）：** `PRAGMA journal_mode=DELETE; PRAGMA foreign_keys=ON;`，单连接 + `Arc<Mutex>` 共享。
 
 </details>
 
