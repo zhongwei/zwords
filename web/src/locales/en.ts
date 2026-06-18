@@ -93,6 +93,8 @@ export default {
     progress: "Word {current} / {total}",
     back: "Back to Detail",
     typeHere: "Type the word...",
+    showWord: "Show Word",
+    hideWord: "Hide Word",
     result: "Practice Result",
     accuracy: "Accuracy",
     totalTime: "Total Time",

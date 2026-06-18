@@ -3,17 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import { audioUrl } from "@/lib/audio";
 import { Button } from "@/components/ui/button";
-import { Volume2 } from "lucide-react";
+import { Volume2, Eye, EyeOff } from "lucide-react";
 import type { Word } from "@/lib/types";
 import TypingInput from "@/components/typing/TypingInput";
 
 interface TypingCardProps {
   word: Word;
+  showWord: boolean;
+  onToggleShowWord: () => void;
   onComplete: () => void;
   onError: () => void;
 }
 
-export default function TypingCard({ word, onComplete, onError }: TypingCardProps) {
+export default function TypingCard({ word, showWord, onToggleShowWord, onComplete, onError }: TypingCardProps) {
   const { t } = useI18n();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playingVariant, setPlayingVariant] = useState<"uk" | "us" | null>(null);
@@ -56,10 +58,33 @@ export default function TypingCard({ word, onComplete, onError }: TypingCardProp
           className="tp-card"
         >
           <div className="tp-card-inner">
+            <button
+              className="tp-card-toggle"
+              onClick={onToggleShowWord}
+              title={showWord ? t.typing.hideWord : t.typing.showWord}
+            >
+              {showWord ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+
             <div className="tp-card-hint">
               {word.pos && <span className="tp-pos">{word.pos}</span>}
               {word.meaning_cn && <span className="tp-meaning">{word.meaning_cn}</span>}
             </div>
+
+            <AnimatePresence>
+              {showWord && (
+                <motion.div
+                  key="word-display"
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="tp-card-word"
+                >
+                  {word.word}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="tp-card-audio">
               {word.has_audio_uk && (

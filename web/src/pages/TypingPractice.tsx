@@ -49,6 +49,7 @@ export default function TypingPractice() {
   const [results, setResults] = useState<WordResult[]>([]);
   const [startTime, setStartTime] = useState<number>(0);
   const [totalTimeMs, setTotalTimeMs] = useState(0);
+  const [showWord, setShowWord] = useState(true);
 
   useEffect(() => {
     if (practiceWords === null && listData) {
@@ -160,6 +161,8 @@ export default function TypingPractice() {
           <TypingCard
             key={currentWord.id}
             word={currentWord}
+            showWord={showWord}
+            onToggleShowWord={() => setShowWord((v) => !v)}
             onComplete={handleComplete}
             onError={handleError}
           />

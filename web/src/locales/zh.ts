@@ -93,6 +93,8 @@ export default {
     progress: "第 {current} 个 / 共 {total} 个",
     back: "返回详情",
     typeHere: "输入单词...",
+    showWord: "显示单词",
+    hideWord: "隐藏单词",
     result: "练习结果",
     accuracy: "正确率",
     totalTime: "总用时",

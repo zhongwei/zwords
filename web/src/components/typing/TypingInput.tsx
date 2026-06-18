@@ -8,73 +8,67 @@ interface TypingInputProps {
   onError: () => void;
 }
 
+function findCursor(chars: CharState[]): number {
+  return chars.findIndex((s) => s === "empty" || s === "wrong");
+}
+
 export default function TypingInput({ word, onComplete, onError }: TypingInputProps) {
   const initialChars = word.split("").map((c) => (/[a-zA-Z]/.test(c) ? "empty" : "correct") as CharState);
-  const initialCursor = word.split("").findIndex((c) => /[a-zA-Z]/.test(c));
 
   const [chars, setChars] = useState<CharState[]>(initialChars);
-  const [cursor, setCursor] = useState(initialCursor);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setChars(word.split("").map((c) => (/[a-zA-Z]/.test(c) ? "empty" : "correct") as CharState));
-    setCursor(word.split("").findIndex((c) => /[a-zA-Z]/.test(c)));
     containerRef.current?.focus();
   }, [word]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Tab" || e.key === "Escape") return;
+      const key = e.key;
+      if (key === "Tab" || key === "Escape") return;
       e.preventDefault();
 
-      if (e.key === "Backspace") {
+      if (key === "Backspace") {
         setChars((prev) => {
           const next = [...prev];
-          setCursor((pc) => {
-            let prevIdx = pc - 1;
-            while (prevIdx >= 0 && next[prevIdx] !== "empty" && next[prevIdx] !== "wrong") {
-              prevIdx--;
-            }
-            if (prevIdx >= 0 && next[prevIdx] === "wrong") {
-              next[prevIdx] = "empty";
-              return prevIdx;
-            }
-            return pc;
-          });
+          const pc = findCursor(prev);
+          let prevIdx = pc - 1;
+          while (prevIdx >= 0 && next[prevIdx] !== "empty" && next[prevIdx] !== "wrong") {
+            prevIdx--;
+          }
+          if (prevIdx >= 0 && next[prevIdx] === "wrong") {
+            next[prevIdx] = "empty";
+          }
           return next;
         });
         return;
       }
 
-      if (!/^[a-zA-Z]$/.test(e.key)) return;
+      if (!/^[a-zA-Z]$/.test(key)) return;
 
       setChars((prev) => {
         const next = [...prev];
-        setCursor((pc) => {
-          if (pc >= word.length) return pc;
-          const expected = word[pc];
-          if (e.key.toLowerCase() === expected.toLowerCase()) {
-            next[pc] = "correct";
-          } else {
-            next[pc] = "wrong";
-            onError();
-          }
+        const pc = findCursor(prev);
+        if (pc < 0 || pc >= word.length) return prev;
+        const expected = word[pc];
+        if (key.toLowerCase() === expected.toLowerCase()) {
+          next[pc] = "correct";
+        } else {
+          next[pc] = "wrong";
+          onError();
+        }
 
-          let n = pc + 1;
-          while (n < word.length && next[n] === "correct" && !/[a-zA-Z]/.test(word[n])) {
-            n++;
-          }
-
-          if (next.every((s) => s === "correct")) {
-            onComplete();
-          }
-          return n;
-        });
+        if (next.every((s) => s === "correct")) {
+          onComplete();
+        }
         return next;
       });
     },
     [word, onComplete, onError]
   );
+
+  const cursor = findCursor(chars);
 
   const displayChars = chars.map((state, i) => {
     const c = word[i];
